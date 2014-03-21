@@ -96,7 +96,7 @@ h1.title {
   content: "Score"; }
 
 .best-container:after {
-  content: "Best"; }
+  content: "Worst"; }
 
 p {
   margin-top: 0;
