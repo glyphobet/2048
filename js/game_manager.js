@@ -39,6 +39,7 @@ GameManager.prototype.setup = function () {
   this.grid        = new Grid(this.size);
 
   this.score       = 0;
+  this.balancedScore = 0;
   this.over        = false;
   this.won         = false;
   this.keepPlaying = false;
@@ -60,9 +61,13 @@ GameManager.prototype.addStartTiles = function () {
 // Adds a tile in a random position
 GameManager.prototype.addRandomTile = function () {
   if (this.grid.cellsAvailable()) {
-    var value = Math.random() < 0.5 ? -1 : +1;
+    var value = Math.random() < 0.55 ? +1 : -1;
+    if (this.balancedScore > 0) {
+      value *= -1;
+    }
     var tile = new Tile(this.grid.randomAvailableCell(), value);
     this.score += 1;
+    this.balancedScore += value;
     this.grid.insertTile(tile);
   }
 };
@@ -138,6 +143,8 @@ GameManager.prototype.move = function (direction) {
             // Update the score
             self.score -= Math.abs(tile.value);
             self.score -= Math.abs(next.value);
+            self.balancedScore -= tile.value;
+            self.balancedScore -= next.value;
 
             self.grid.removeTile(next);
           }
