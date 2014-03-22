@@ -8,11 +8,19 @@ function HTMLActuator() {
   this.score = 0;
 }
 
-HTMLActuator.prototype.actuate = function (grid, metadata) {
+HTMLActuator.prototype.actuate = function (grid, phantomGrid, metadata) {
   var self = this;
 
   window.requestAnimationFrame(function () {
     self.clearContainer(self.tileContainer);
+
+    phantomGrid.cells.forEach(function (column) {
+      column.forEach(function (cell) {
+        if (cell) {
+          self.addMergedTiles(cell, true);
+        }
+      });
+    });
 
     grid.cells.forEach(function (column) {
       column.forEach(function (cell) {
@@ -51,7 +59,15 @@ HTMLActuator.prototype.clearContainer = function (container) {
   }
 };
 
-HTMLActuator.prototype.addTile = function (tile) {
+HTMLActuator.prototype.addMergedTiles = function (tile, removed) {
+  var self = this;
+  // Render the tiles that merged
+  tile.mergedFrom.forEach(function (merged) {
+    self.addTile(merged, removed);
+  });
+}
+
+HTMLActuator.prototype.addTile = function (tile, removed) {
   var self = this;
 
   var wrapper   = document.createElement("div");
@@ -60,14 +76,18 @@ HTMLActuator.prototype.addTile = function (tile) {
   var positionClass = this.positionClass(position);
 
   // We can't use classlist because it somehow glitches when replacing classes
-  var classes = ["tile", "tile-" + tile.value, positionClass];
+  var classes = ["tile", "tile-" + Math.abs(tile.value), positionClass];
+
+  if (removed) {
+    classes.push("tile-removed");
+  }
 
   if (tile.value > 2048) classes.push("tile-super");
 
   this.applyClasses(wrapper, classes);
 
   inner.classList.add("tile-inner");
-  inner.textContent = tile.value;
+  inner.textContent = this.renderNumber(tile.value);
 
   if (tile.previousPosition) {
     // Make sure that the tile gets rendered in the previous position first
@@ -79,10 +99,7 @@ HTMLActuator.prototype.addTile = function (tile) {
     classes.push("tile-merged");
     this.applyClasses(wrapper, classes);
 
-    // Render the tiles that merged
-    tile.mergedFrom.forEach(function (merged) {
-      self.addTile(merged);
-    });
+    this.addMergedTiles(tile);
   } else {
     classes.push("tile-new");
     this.applyClasses(wrapper, classes);
@@ -116,10 +133,10 @@ HTMLActuator.prototype.updateScore = function (score) {
 
   this.scoreContainer.textContent = this.score;
 
-  if (difference > 0) {
+  if (difference !== 0) {
     var addition = document.createElement("div");
     addition.classList.add("score-addition");
-    addition.textContent = "+" + difference;
+    addition.textContent = this.renderNumber(difference);
 
     this.scoreContainer.appendChild(addition);
   }
@@ -151,17 +168,21 @@ HTMLActuator.prototype.clearMessage = function () {
   this.messageContainer.classList.remove("game-over");
 };
 
+HTMLActuator.prototype.renderNumber = function (n) {
+  return n > 0 ? "+" + n : '–' + Math.abs(n)
+}
+
 HTMLActuator.prototype.scoreTweetButton = function () {
   var tweet = document.createElement("a");
   tweet.classList.add("twitter-share-button");
   tweet.setAttribute("href", "https://twitter.com/share");
-  tweet.setAttribute("data-via", "gabrielecirulli");
-  tweet.setAttribute("data-url", "http://git.io/2048");
-  tweet.setAttribute("data-counturl", "http://gabrielecirulli.github.io/2048/");
+  tweet.setAttribute("data-via", "glyphobet");
+  tweet.setAttribute("data-url", "http://git.io/zero");
+  tweet.setAttribute("data-counturl", "http://glyphobet.github.io/zero/");
   tweet.textContent = "Tweet";
 
-  var text = "I scored " + this.score + " points at 2048, a game where you " +
-             "join numbers to score high! #2048game";
+  var text = "I scored " + this.score + " points at zero, a game where you " +
+             "join numbers to score low! #zerogame";
   tweet.setAttribute("data-text", text);
 
   return tweet;
