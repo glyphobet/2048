@@ -7,11 +7,19 @@ function HTMLActuator() {
   this.score = 0;
 }
 
-HTMLActuator.prototype.actuate = function (grid, metadata) {
+HTMLActuator.prototype.actuate = function (grid, phantomGrid, metadata) {
   var self = this;
 
   window.requestAnimationFrame(function () {
     self.clearContainer(self.tileContainer);
+
+    phantomGrid.cells.forEach(function (column) {
+      column.forEach(function (cell) {
+        if (cell) {
+          self.addMergedTiles(cell, true);
+        }
+      });
+    });
 
     grid.cells.forEach(function (column) {
       column.forEach(function (cell) {
@@ -46,7 +54,15 @@ HTMLActuator.prototype.clearContainer = function (container) {
   }
 };
 
-HTMLActuator.prototype.addTile = function (tile) {
+HTMLActuator.prototype.addMergedTiles = function (tile, removed) {
+  var self = this;
+  // Render the tiles that merged
+  tile.mergedFrom.forEach(function (merged) {
+    self.addTile(merged, removed);
+  });
+}
+
+HTMLActuator.prototype.addTile = function (tile, removed) {
   var self = this;
 
   var wrapper   = document.createElement("div");
@@ -56,6 +72,10 @@ HTMLActuator.prototype.addTile = function (tile) {
 
   // We can't use classlist because it somehow glitches when replacing classes
   var classes = ["tile", "tile-" + Math.abs(tile.value), positionClass];
+
+  if (removed) {
+    classes.push("tile-removed");
+  }
 
   if (tile.value > 2048) classes.push("tile-super");
 
@@ -74,10 +94,7 @@ HTMLActuator.prototype.addTile = function (tile) {
     classes.push("tile-merged");
     this.applyClasses(wrapper, classes);
 
-    // Render the tiles that merged
-    tile.mergedFrom.forEach(function (merged) {
-      self.addTile(merged);
-    });
+    this.addMergedTiles(tile);
   } else {
     classes.push("tile-new");
     this.applyClasses(wrapper, classes);

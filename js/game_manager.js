@@ -37,6 +37,7 @@ GameManager.prototype.isGameTerminated = function () {
 // Set up the game
 GameManager.prototype.setup = function () {
   this.grid        = new Grid(this.size);
+  this.phantomGrid = new Grid(this.size);
 
   this.score       = 0;
   this.balancedScore = 0;
@@ -78,7 +79,7 @@ GameManager.prototype.actuate = function () {
     this.scoreManager.set(this.score);
   }
 
-  this.actuator.actuate(this.grid, {
+  this.actuator.actuate(this.grid, this.phantomGrid, {
     score:      this.score,
     over:       this.over,
     won:        this.won,
@@ -96,6 +97,7 @@ GameManager.prototype.prepareTiles = function () {
       tile.savePosition();
     }
   });
+  this.phantomGrid = new Grid(this.size);
 };
 
 // Move a tile and its representation
@@ -133,11 +135,15 @@ GameManager.prototype.move = function (direction) {
 
         // Only one merger per row traversal?
         if (next && Math.abs(next.value) === Math.abs(tile.value) && !next.mergedFrom) {
-          var merged_value = tile.value + next.value;
-          if (merged_value) {
-            var merged = new Tile(positions.next, merged_value);
-            merged.mergedFrom = [tile, next];
 
+          self.grid.removeTile(next);
+          self.grid.removeTile(tile);
+
+          var merged_value = tile.value + next.value;
+          var merged = new Tile(positions.next, merged_value);
+          merged.mergedFrom = [tile, next];
+
+          if (merged_value) {
             self.grid.insertTile(merged);
           } else {
             // Update the score
@@ -145,10 +151,8 @@ GameManager.prototype.move = function (direction) {
             self.score -= Math.abs(next.value);
             self.balancedScore -= tile.value;
             self.balancedScore -= next.value;
-
-            self.grid.removeTile(next);
+            self.phantomGrid.insertTile(merged);
           }
-          self.grid.removeTile(tile);
 
           // Converge the two tiles' positions
           tile.updatePosition(positions.next);

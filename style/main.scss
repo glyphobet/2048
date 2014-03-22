@@ -447,6 +447,24 @@ hr {
   @include animation-fill-mode(backwards);
 }
 
+@include keyframes(disappear) {
+  0% {
+    opacity: 1;
+    @include transform(scale(1));
+  }
+
+  100% {
+    opacity: 0;
+    @include transform(scale(0));
+  }
+}
+
+.tile-removed .tile-inner {
+  opacity: 0;
+  @include animation(disappear 200ms ease $transition-speed);
+  @include animation-fill-mode(backwards);
+}
+
 .game-intro {
   margin-bottom: 0;
 }
