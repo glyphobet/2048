@@ -62,7 +62,7 @@ HTMLActuator.prototype.addTile = function (tile) {
   this.applyClasses(wrapper, classes);
 
   inner.classList.add("tile-inner");
-  inner.textContent = tile.value > 0 ? '+' + tile.value : '–' + Math.abs(tile.value);
+  inner.textContent = this.renderNumber(tile.value);
 
   if (tile.previousPosition) {
     // Make sure that the tile gets rendered in the previous position first
@@ -114,7 +114,7 @@ HTMLActuator.prototype.updateScore = function (score) {
   if (difference !== 0) {
     var addition = document.createElement("div");
     addition.classList.add("score-addition");
-    addition.textContent = difference > 0 ? "+" + difference : '–' + Math.abs(difference);
+    addition.textContent = this.renderNumber(difference);
 
     this.scoreContainer.appendChild(addition);
   }
@@ -137,3 +137,7 @@ HTMLActuator.prototype.clearMessage = function () {
   this.messageContainer.classList.remove("game-won");
   this.messageContainer.classList.remove("game-over");
 };
+
+HTMLActuator.prototype.renderNumber = function (n) {
+  return n > 0 ? "+" + n : '–' + Math.abs(n)
+}
